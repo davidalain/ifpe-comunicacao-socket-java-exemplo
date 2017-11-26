@@ -14,8 +14,8 @@ public class DadosJogo {
 	
 	private List<Conexao> clientes;
 	private EstadoJogo estado;
-	private Map<Conexao,Personagem> mapaPersonagensJogadores;
-	private Map<Conexao,Integer> mapaJogadasJogadores;
+	private Map<Conexao,Personagem> mapaPersonagens;
+	private Map<Conexao,Integer> mapaJogadas;
 
 	public DadosJogo(EstadoJogo estado) {
 		super();
@@ -24,8 +24,8 @@ public class DadosJogo {
 		
 		this.clientes = new ArrayList<>(Config.QUANTIDADE_JOGADORES);
 		
-		this.mapaPersonagensJogadores = new HashMap<>();
-		this.mapaJogadasJogadores = new HashMap<>();
+		this.mapaPersonagens = new HashMap<>();
+		this.mapaJogadas = new HashMap<>();
 	}
 	
 	public List<Conexao> getClientes() {
@@ -44,20 +44,20 @@ public class DadosJogo {
 		this.estado = estado;
 	}
 
-	public Map<Conexao, Personagem> getMapaPersonagensJogadores() {
-		return mapaPersonagensJogadores;
+	public Map<Conexao, Personagem> getMapaPersonagens() {
+		return mapaPersonagens;
 	}
 
-	public void setMapaPersonagensJogadores(Map<Conexao, Personagem> mapaPersonagensJogadores) {
-		this.mapaPersonagensJogadores = mapaPersonagensJogadores;
+	public void setMapaPersonagens(Map<Conexao, Personagem> mapaPersonagensJogadores) {
+		this.mapaPersonagens = mapaPersonagensJogadores;
 	}
 	
-	public Map<Conexao, Integer> getMapaJogadasJogadores() {
-		return mapaJogadasJogadores;
+	public Map<Conexao, Integer> getMapaJogadas() {
+		return mapaJogadas;
 	}
 
-	public void setMapaJogadasJogadores(Map<Conexao, Integer> mapaJogadasJogadores) {
-		this.mapaJogadasJogadores = mapaJogadasJogadores;
+	public void setMapaJogadas(Map<Conexao, Integer> mapaJogadasJogadores) {
+		this.mapaJogadas = mapaJogadasJogadores;
 	}
 	
 	/**
@@ -73,7 +73,7 @@ public class DadosJogo {
 	 * @return
 	 */
 	public boolean todosPersonsagensEscolhidos() {
-		return (mapaPersonagensJogadores.size() == Config.QUANTIDADE_JOGADORES);
+		return (mapaPersonagens.size() == Config.QUANTIDADE_JOGADORES);
 	}
 
 	/**
@@ -81,7 +81,7 @@ public class DadosJogo {
 	 * @return
 	 */
 	public boolean todasJogadasRealizadas() {
-		return (mapaJogadasJogadores.size() == Config.QUANTIDADE_JOGADORES); 
+		return (mapaJogadas.size() == Config.QUANTIDADE_JOGADORES); 
 	}
 
 

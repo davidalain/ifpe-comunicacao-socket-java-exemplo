@@ -79,10 +79,10 @@ public class MainServidor {
 								//								System.out.println("Mensagem: " + msg);
 
 								//Verifica se o personagem escolhido pelo jogador já não foi escolhido por outro jogador
-								if((!dadosJogo.getMapaPersonagensJogadores().containsValue(personagemEscolhido)) || (dadosJogo.getMapaPersonagensJogadores().get(cliente) == personagemEscolhido)) {
+								if((!dadosJogo.getMapaPersonagens().containsValue(personagemEscolhido)) || (dadosJogo.getMapaPersonagens().get(cliente) == personagemEscolhido)) {
 
 									//Coloca o personagem escolhido pelo cliente
-									dadosJogo.getMapaPersonagensJogadores().put(cliente, personagemEscolhido);
+									dadosJogo.getMapaPersonagens().put(cliente, personagemEscolhido);
 
 									//Envia para o cliente a confirmação de que o personagem foi escolhido
 									cliente.enviarMensagem(FabricMensagem.criaMensagemEscolhaPersonagem(personagemEscolhido));
@@ -135,10 +135,12 @@ public class MainServidor {
 								if(valorJogada >= 0) {
 
 									//Associa a jogada com o jogador
-									dadosJogo.getMapaJogadasJogadores().put(cliente, valorJogada);
+									dadosJogo.getMapaJogadas().put(cliente, valorJogada);
+									
+									Personagem personagem = dadosJogo.getMapaPersonagens().get(cliente);
 
 									//Envia para o cliente a confirmação de que a jogada foi recebida
-									cliente.enviarMensagem(FabricMensagem.criaMensagemJogada(valorJogada));
+									cliente.enviarMensagem(FabricMensagem.criaMensagemJogada(personagem, valorJogada));
 
 								}else {
 
@@ -156,6 +158,27 @@ public class MainServidor {
 
 					//Todos os jogadores já fizeram suas jogadas?
 					if(dadosJogo.todasJogadasRealizadas()) {
+						
+						//Informa pra todos os jogadores as jogadas uns dos outros
+						for(Conexao cliente : dadosJogo.getClientes()) {
+
+							for(Conexao clienteJogada : dadosJogo.getClientes()) {
+
+								//Não a jogada do mesmo jogador, só dos outros jogadores
+								if(!cliente.equals(clienteJogada)) {
+									
+									Personagem personagem = dadosJogo.getMapaPersonagens().get(clienteJogada);
+									int jogada = dadosJogo.getMapaJogadas().get(clienteJogada);
+									
+									//Envia para o cliente a jogada dos outros clientes
+									cliente.enviarMensagem(FabricMensagem.criaMensagemJogada(personagem, jogada));
+									
+								}
+								
+							}
+							
+						}
+						
 						dadosJogo.setEstado(EstadoJogo.SERVIDOR_ANALISA_JOGADAS);
 						contadorPrint = -1;
 					}
@@ -171,7 +194,7 @@ public class MainServidor {
 					 */
 
 					int soma = 0;
-					for(Integer jogada : dadosJogo.getMapaJogadasJogadores().values()) {
+					for(Integer jogada : dadosJogo.getMapaJogadas().values()) {
 						soma += jogada;
 					}
 
@@ -181,7 +204,7 @@ public class MainServidor {
 						//Soma deu par
 						if(soma % 2 == 0) {
 
-							if(dadosJogo.getMapaPersonagensJogadores().get(cliente).equals(Personagem.PAR)) {
+							if(dadosJogo.getMapaPersonagens().get(cliente).equals(Personagem.PAR)) {
 								//Salva o jogador vencedor
 								clienteVencedor = cliente;
 								break;
@@ -189,7 +212,7 @@ public class MainServidor {
 
 						}else { //Soma deu ímpar
 
-							if(dadosJogo.getMapaPersonagensJogadores().get(cliente).equals(Personagem.IMPAR)) {
+							if(dadosJogo.getMapaPersonagens().get(cliente).equals(Personagem.IMPAR)) {
 								//Salva o jogador vencedor
 								clienteVencedor = cliente;
 								break;
@@ -200,7 +223,7 @@ public class MainServidor {
 					//Envia para todos os jogadores a mensagem do vencedor
 					for(Conexao cliente : dadosJogo.getClientes()) {
 
-						Personagem personagemVencedor = dadosJogo.getMapaPersonagensJogadores().get(clienteVencedor);
+						Personagem personagemVencedor = dadosJogo.getMapaPersonagens().get(clienteVencedor);
 
 						cliente.enviarMensagem(FabricMensagem.criaMensagemVencedor(personagemVencedor));
 					}
@@ -221,8 +244,8 @@ public class MainServidor {
 					/**
 					 * Limpa todas as variáveis dos jogadores e volta pra o estado de escolha dos personagens
 					 */
-					dadosJogo.getMapaJogadasJogadores().clear();
-					dadosJogo.getMapaPersonagensJogadores().clear();
+					dadosJogo.getMapaJogadas().clear();
+					dadosJogo.getMapaPersonagens().clear();
 
 					contadorPrint = -1;
 

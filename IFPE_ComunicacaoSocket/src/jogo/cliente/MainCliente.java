@@ -127,11 +127,11 @@ public class MainCliente {
 
 						}
 					}while(valor < 0);
-					System.out.println("Você (personagem "+personagemEscolhido+") jogou o valor " + valor);
+					System.out.println("Você ("+personagemEscolhido+") jogou o valor " + valor);
 
 					while(true) {
 
-						conexao.enviarMensagem(FabricMensagem.criaMensagemJogada(valor));
+						conexao.enviarMensagem(FabricMensagem.criaMensagemJogada(personagemEscolhido, valor));
 						Thread.sleep(100);
 
 						Mensagem msg = conexao.lerMensagem();
@@ -169,8 +169,11 @@ public class MainCliente {
 					Mensagem msg = conexao.lerMensagem();
 
 					if(msg != null) {
-
-						if(msg.isMensagemVencedor()) {
+						
+						if(msg.isMensagemJogada() && (msg.getCampoPersonagem() != personagemEscolhido)) {
+							System.out.println("Adversário ("+msg.getCampoPersonagem()+") jogou: " + msg.getCampoJogada());
+							
+						} else if(msg.isMensagemVencedor()) {
 
 							if(msg.getCampoPersonagem() == personagemEscolhido) {
 								System.out.println("Você venceu!");
@@ -182,7 +185,9 @@ public class MainCliente {
 
 							estado = EstadoJogo.CLIENTE_ESCOLHENDO_PERSONAGENS;
 							contadorPrint = -1;
+							System.out.println("=============== START =====================");
 						}
+						
 					} else {
 						Thread.sleep(100);
 					}
@@ -196,7 +201,6 @@ public class MainCliente {
 
 					estado = EstadoJogo.CLIENTE_ESCOLHENDO_PERSONAGENS;
 					contadorPrint = -1;
-					System.out.println("=============== START =====================");
 
 					break;
 				}

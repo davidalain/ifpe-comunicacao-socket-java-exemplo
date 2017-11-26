@@ -95,7 +95,7 @@ public class Mensagem implements Serializable{
 	}
 
 	public Personagem getCampoPersonagem() {
-		if(!isMensagemEscolhaPersonagem() && !isMensagemVencedor()) 
+		if(!isMensagemEscolhaPersonagem() && !isMensagemVencedor() && !isMensagemJogada()) 
 			return null;
 
 		return Personagem.values()[this.campos[1]];
@@ -109,7 +109,7 @@ public class Mensagem implements Serializable{
 	}
 
 	public int getCampoJogada() {
-		return this.campos[1];
+		return this.campos[2];
 	}
 
 	public int getCampoTabuleiro() {

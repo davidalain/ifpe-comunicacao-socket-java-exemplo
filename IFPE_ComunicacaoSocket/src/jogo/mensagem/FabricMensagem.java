@@ -4,11 +4,11 @@ import jogo.Personagem;
 
 public class FabricMensagem {
 
-	public static final Mensagem criaMensagemJogada(Personagem personage, int valorJogada) {
+	public static final Mensagem criaMensagemJogada(Personagem personagem, int valorJogada) {
 		Mensagem msg = new Mensagem(new int[Mensagem.MSG_SIZE]);
 		
 		msg.getCampos()[0] = TipoMensagem.MSG_JOGADA.ordinal();
-		msg.getCampos()[1] = valorJogada;
+		msg.getCampos()[1] = personagem.ordinal();
 		msg.getCampos()[2] = valorJogada;
 
 		return msg;
