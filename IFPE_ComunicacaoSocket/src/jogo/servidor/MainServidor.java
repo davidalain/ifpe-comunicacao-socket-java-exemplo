@@ -75,8 +75,7 @@ public class MainServidor {
 							if(msg.isMensagemEscolhaPersonagem()) {
 
 								Personagem personagemEscolhido = msg.getCampoPersonagem();
-								//								System.out.println("Personagem: " + personagemEscolhido);
-								//								System.out.println("Mensagem: " + msg);
+								System.out.println("S#: Cliente " +cliente+ " escolheu seu personagem: " + personagemEscolhido);
 
 								//Verifica se o personagem escolhido pelo jogador já não foi escolhido por outro jogador
 								if((!dadosJogo.getMapaPersonagens().containsValue(personagemEscolhido)) || (dadosJogo.getMapaPersonagens().get(cliente) == personagemEscolhido)) {
@@ -86,16 +85,17 @@ public class MainServidor {
 
 									//Envia para o cliente a confirmação de que o personagem foi escolhido
 									cliente.enviarMensagem(FabricMensagem.criaMensagemEscolhaPersonagem(personagemEscolhido));
-//									System.out.println("Servidor: Criou mensagem escolha personagem " + personagemEscolhido);
+									System.out.println("S#: Criou mensagem OK escolha personagem " + personagemEscolhido + " para o cliente " + cliente);
 
 								}else {
 
 									//Envia para o cliente uma mensagem de erro informando que o personagem já foi escolhido por outro jogador
 									cliente.enviarMensagem(FabricMensagem.criaMensagemErro(TipoErro.PERSONAGEM_JA_ESCOLHIDO));
+									System.out.println("S#: Criou mensagem ERRO escolha personagem " + personagemEscolhido + " para o cliente " + cliente+". Personagem já escolhido!!!");
 
 								}
 
-//								System.out.println(dadosJogo.getMapaPersonagensJogadores().entrySet());
+								System.out.println("S#: mapaPesonagens="+dadosJogo.getMapaPersonagens().entrySet());
 							}
 
 						} 
@@ -136,7 +136,7 @@ public class MainServidor {
 
 									//Associa a jogada com o jogador
 									dadosJogo.getMapaJogadas().put(cliente, valorJogada);
-									
+
 									Personagem personagem = dadosJogo.getMapaPersonagens().get(cliente);
 
 									//Envia para o cliente a confirmação de que a jogada foi recebida
@@ -158,7 +158,7 @@ public class MainServidor {
 
 					//Todos os jogadores já fizeram suas jogadas?
 					if(dadosJogo.todasJogadasRealizadas()) {
-						
+
 						//Informa pra todos os jogadores as jogadas uns dos outros
 						for(Conexao cliente : dadosJogo.getClientes()) {
 
@@ -166,19 +166,19 @@ public class MainServidor {
 
 								//Não a jogada do mesmo jogador, só dos outros jogadores
 								if(!cliente.equals(clienteJogada)) {
-									
+
 									Personagem personagem = dadosJogo.getMapaPersonagens().get(clienteJogada);
 									int jogada = dadosJogo.getMapaJogadas().get(clienteJogada);
-									
+
 									//Envia para o cliente a jogada dos outros clientes
 									cliente.enviarMensagem(FabricMensagem.criaMensagemJogada(personagem, jogada));
-									
+
 								}
-								
+
 							}
-							
+
 						}
-						
+
 						dadosJogo.setEstado(EstadoJogo.SERVIDOR_ANALISA_JOGADAS);
 						contadorPrint = -1;
 					}

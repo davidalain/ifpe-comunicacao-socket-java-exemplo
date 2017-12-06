@@ -46,6 +46,17 @@ public class Conexao{
 	public synchronized Mensagem lerMensagem(){
 		return this.entrada.lerMensagem();
 	}
+	
+	public synchronized Mensagem lerMensagem(long timeoutMs) throws InterruptedException{
+
+		Mensagem msg = null;
+		long ini = System.currentTimeMillis();
+		
+		while(((msg = this.entrada.lerMensagem()) == null) && (System.currentTimeMillis() - ini < timeoutMs)) {
+			Thread.sleep(50);
+		}
+		return msg;
+	}
 
 	public synchronized void enviarMensagem(Mensagem mensagem){
 		this.saida.enviarMensagem(mensagem);

@@ -1,8 +1,8 @@
 package jogo.cliente;
 
+import java.awt.EventQueue;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Scanner;
 
 import jogo.Conexao;
 import jogo.EstadoJogo;
@@ -16,15 +16,24 @@ public class MainCliente {
 
 	public static void main(String[] args) throws IOException {
 
-		Scanner sc = null;
+		final Tela tela = new Tela();
+
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					tela.setVisible(true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+		});
+
 
 		try {
 
-			sc = new Scanner(System.in);
 			EstadoJogo estado = EstadoJogo.CLIENTE_CONECTANDO_AO_SERVIDOR;
 			Conexao conexao = null;
 			Personagem personagemEscolhido = null;
-			int contadorPrint = -1;
 
 			while(true) {
 
@@ -34,68 +43,65 @@ public class MainCliente {
 				switch (estado) {
 				case CLIENTE_CONECTANDO_AO_SERVIDOR:
 				{
-					//if(contadorPrint++ == 0)
-					//System.out.println("Cliente(ESTADO)="+estado);
+
+					tela.configurarCamposInicioJogo();
+					tela.setTextoEstado("Conectando ao servidor...");
 
 					conexao = new Conexao(new Socket(Config.HOST, Config.PORT));
 
 					System.out.println("C#: Jogador conectado. IP:porta={" + conexao.getSocket().getInetAddress().getHostAddress() + ":" + conexao.getSocket().getPort()+ "}");
 
 					estado = EstadoJogo.CLIENTE_ESCOLHENDO_PERSONAGENS;
-					contadorPrint = -1;
-					
-					System.out.println("=============== START =====================");
+
+					tela.setTextoEstado("Conectado!");
+					Thread.sleep(300);
 
 					break;
 				}
 				case CLIENTE_ESCOLHENDO_PERSONAGENS:
 				{
-					//if(contadorPrint++ == 0)
-					//System.out.println("Cliente(ESTADO)="+estado);
-
 					/**
 					 * Habilitar a tela para escolher os possíveis personagens.
 					 */
+
+					tela.setTextoEstado("Escolha seu personagem");
+					tela.habilitaEscolhaPersonagem(true);
+					tela.habilitaEscolhaJogada(false);
+
 					//Neste caso como é um jogo de par ou impar, os possíveis personagens são PAR e ÍMPAR
-					int valor = -1;
-					
-					//Lê do teclado a escolha do jogador
-					do {
-						System.out.println("Digite "+Personagem.PAR.ordinal()+" para PAR ou "+Personagem.IMPAR.ordinal()+" para ÍMPAR");
-						try {
-							valor = Integer.parseInt(sc.next());
-						}catch (Exception e) {
 
-						}
-					}while(valor != 0 && valor != 1);
+					while(true) {
+						personagemEscolhido = tela.getPersonagemEscolhido();
 
-					personagemEscolhido = Personagem.values()[valor];
-					System.out.println("Escolheu o personagem " + personagemEscolhido);
+						if(personagemEscolhido == null)
+							Thread.sleep(100);
+						else
+							break;
+					}
 
 					while(true) {
 
 						conexao.enviarMensagem(FabricMensagem.criaMensagemEscolhaPersonagem(personagemEscolhido));
-						Thread.sleep(100);
 
-						Mensagem msg = conexao.lerMensagem();
+						Mensagem msg = conexao.lerMensagem(1000 /*espera máxima em milisegundos*/);
 
 						if(msg != null) {
 
 							if(msg.isMensagemEscolhaPersonagem() && (msg.getCampoPersonagem() == personagemEscolhido)) {
 
 								estado = EstadoJogo.CLIENTE_ESCOLHENDO_JOGADA;
-								contadorPrint = -1;
-								
+
 								break; //sai do while(true)
 
 							} else if(msg.isMensagemErro() && (msg.getCampoTipoErro() == TipoErro.PERSONAGEM_JA_ESCOLHIDO)){
-								System.out.println("Personagem já foi escolhido por outro jogador!");
+								tela.mostrarMensagemErro("Personagem já foi escolhido por outro jogador!");
+								tela.limparSelecaoPersonagem();
 
 								break; //sai do while(true). Vai escolher o personagem novamente.
 
 							} else {
 								conexao.limparEntrada();
-//								System.out.println("Aconteceu algum erro. msg="+msg+", ESTADO="+estado);
+								//								System.out.println("Aconteceu algum erro. msg="+msg+", ESTADO="+estado);
 							}
 
 						} else {
@@ -108,49 +114,55 @@ public class MainCliente {
 				}
 				case CLIENTE_ESCOLHENDO_JOGADA:
 				{
-					//if(contadorPrint++ == 0)
-					//System.out.println("Cliente(ESTADO)="+estado);
-
 					/**
 					 * Habilita a tela para que o jogador faça sua jogada
 					 */ 
+					tela.setTextoEstado("Sua vez! Jogue!");
+					tela.habilitaEscolhaPersonagem(false);
+					tela.habilitaEscolhaJogada(true);
+
 					//Neste caso como é um jogo de par ou ímpar, então o jogador escolhe um número inteiro não negativo.
 
-					int valor = -1;
+					int valorJogada = -1;
 
-					//Lê do teclado a escolha do jogador
-					do {
-						System.out.println("Digite sua jogada");
-						try {
-							valor = Integer.parseInt(sc.next());	
-						}catch (Exception e) {
-
+					while(true) {
+						while(!tela.getJogadaRealizada()) {
+							Thread.sleep(100);
 						}
-					}while(valor < 0);
-					System.out.println("Você ("+personagemEscolhido+") jogou o valor " + valor);
+						
+						try {
+							valorJogada = Integer.parseInt(tela.getValorJogada());	
+						}catch (Exception e) {
+							tela.mostrarMensagemErro("Jogada inválida");
+							tela.limparEscolhaJogada();
+						}
+						
+						if(valorJogada != -1)
+							break;
+					}
 
 					while(true) {
 
-						conexao.enviarMensagem(FabricMensagem.criaMensagemJogada(personagemEscolhido, valor));
-						Thread.sleep(100);
+						conexao.enviarMensagem(FabricMensagem.criaMensagemJogada(personagemEscolhido, valorJogada));
 
-						Mensagem msg = conexao.lerMensagem();
+						Mensagem msg = conexao.lerMensagem(1000 /*espera máxima em milisegundos*/);
 						if(msg != null) {
 
-							if(msg.isMensagemJogada() && (msg.getCampoJogada() == valor)) {
+							if(msg.isMensagemJogada() && (msg.getCampoJogada() == valorJogada)) {
 
 								estado = EstadoJogo.CLIENTE_ESPERANDO_JOGADA_ADVERSARIO;
-								contadorPrint = -1;
-								
+
 								break; //sai do while(true)
 
 							} else if(msg.isMensagemErro() && (msg.getCampoTipoErro() == TipoErro.JOGADA_INVALIDA)){
-								System.out.println("Jogada inválida");
+
+								tela.mostrarMensagemErro("Jogada inválida");
+
 								break; //sai do while(true). Vai escolher a jogada novamente.
 
 							} else {
 								conexao.limparEntrada();
-//								System.out.println("Aconteceu algum erro. msg="+msg+", ESTADO="+estado);
+								//								System.out.println("Aconteceu algum erro. msg="+msg+", ESTADO="+estado);
 							}
 
 						} else {
@@ -165,29 +177,37 @@ public class MainCliente {
 				{
 					//if(contadorPrint++ == 0)
 					//System.out.println("Cliente(ESTADO)="+estado);
-					
-					Mensagem msg = conexao.lerMensagem();
+
+					tela.setTextoEstado("Esperando jogada do adversário");
+					tela.habilitaEscolhaPersonagem(false);
+					tela.habilitaEscolhaJogada(false);
+
+					Mensagem msg = conexao.lerMensagem(1000 /*espera máxima em milisegundos*/);
 
 					if(msg != null) {
-						
+
 						if(msg.isMensagemJogada() && (msg.getCampoPersonagem() != personagemEscolhido)) {
+
+							tela.setJogadaAdversario(msg.getCampoJogada());
 							System.out.println("Adversário ("+msg.getCampoPersonagem()+") jogou: " + msg.getCampoJogada());
-							
+
 						} else if(msg.isMensagemVencedor()) {
 
 							if(msg.getCampoPersonagem() == personagemEscolhido) {
-								System.out.println("Você venceu!");
+								tela.mostrarMensagemInfo("Você venceu");
+
 							} else if(msg.getCampoPersonagem() == Personagem.EMPATE) {
-								System.out.println("Empate!");
+								tela.mostrarMensagemInfo("Empate!");
+
 							} else {
-								System.out.println("Você perdeu!");
+								tela.mostrarMensagemInfo("Você perdeu! O vencedor é o personagem " + msg.getCampoPersonagem());
+
 							}
 
+							tela.configurarCamposInicioJogo();
 							estado = EstadoJogo.CLIENTE_ESCOLHENDO_PERSONAGENS;
-							contadorPrint = -1;
-							System.out.println("=============== START =====================");
 						}
-						
+
 					} else {
 						Thread.sleep(100);
 					}
@@ -200,7 +220,6 @@ public class MainCliente {
 					//System.out.println("Cliente(ESTADO)="+estado);
 
 					estado = EstadoJogo.CLIENTE_ESCOLHENDO_PERSONAGENS;
-					contadorPrint = -1;
 
 					break;
 				}
@@ -210,11 +229,15 @@ public class MainCliente {
 			}//fim do while
 
 		} catch(Exception e) {
+
 			e.printStackTrace();
+			tela.mostrarMensagemErro(e.getMessage());
+			//			tela.fechar();
 		}finally {
 
-			if(sc != null)
-				sc.close();
+
+			//			if(sc != null)
+			//				sc.close();
 		}
 	}
 
